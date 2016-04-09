@@ -1,5 +1,15 @@
 // Imports
-var Promise = (typeof window !== 'undefined' && window.Promise) ? window.Promise : require('es6-promise').Promise; // With promise polyfill
+var isWindow = typeof window !== 'undefined';
+var Promise = (isWindow && window.Promise) ? window.Promise : require('es6-promise').Promise; // With promise polyfill
+var setImmediate = isWindow && window.setImmediate ? window.setImmediate : (function() {
+	if (typeof process === 'object' && typeof process.nextTick === 'function') {
+		return process.nextTick;
+	} else {
+		return function(fn) {
+			setTimeout(fn, 0);
+		};
+	}
+})();
 
 // Variables
 var loaders = {};
@@ -12,47 +22,45 @@ function async(collection, callback) {
 
 }
 
-function tasksB(item, callback) {
-	// If item is a function pass the callback instead
-	if (typeof item === 'function') {
-		async.setImmediate(function() {
-			item.call(this, callback);
-		});
-		return;
-	}
-	// Prepare variables
-	var regexExt = /(?:\.([^.]+))?$/,
-		ext = regexExt.exec(item)[1],
-		loader = loaders[ext] || (function() {
-			throw 'No loader for file ' + ext;
-		})();
-	// Check if it's a custom loader that might not deal with element
-	if (typeof loader === 'function') {
-		async.setImmediate(function() {
-			loader.call(this, function(err, data) {
-				// TODO last code
-				// Data should be pass to user
-				callback(err);
+function makePromise(item) {
+	return new Promise(function(resolve, reject) {
+		// If item is a function pass the resolve & reject
+		if (typeof item === 'function') {
+			setImmediate(function() {
+				item.call(this, resolve, reject);
 			});
-		});
-		return;
-	}
-	// Prepare variable for element creation
-	var element = document.createElement(loader.tag || _loaderDefaults.tag),
-		parent = loader.parent || _loaderDefaults.parent,
-		attr = loader.attr || _loaderDefaults.attr;
-	// Handle events loaded or error
-	element.onload = function() {
-		callback();
-	};
-	element.onerror = function() {
-		callback(url);
-	};
-	// Export element for manipulation before attaching to parent
-	loader.config(element);
-	// Inject into document to kick off loading
-	element[attr] = item;
-	document[parent].appendChild(element);
+		} else {
+			// Prepare variables
+			var regexExt = /(?:\.([^.]+))?$/,
+				ext = regexExt.exec(item)[1],
+				loader = loaders[ext] || (function() {
+					throw 'No loader for file ' + ext;
+				})();
+			// Check if it's a custom loader that might not deal with element
+			if (typeof loader === 'function') {
+				setImmediate(function() {
+					loader.call(this, resolve, reject);
+				});
+			} else {
+				// Prepare variable for element creation
+				var element = document.createElement(loader.tag || _loaderDefaults.tag),
+					parent = loader.parent || _loaderDefaults.parent,
+					attr = loader.attr || _loaderDefaults.attr;
+				// Handle events loaded or error
+				element.onload = function() {
+					resolve();
+				};
+				element.onerror = function() {
+					reject(url);
+				};
+				// Export element for manipulation before attaching to parent
+				loader.config(element);
+				// Inject into document to kick off loading
+				element[attr] = item;
+				document[parent].appendChild(element);
+			}
+		}
+	});
 };
 
 
@@ -65,7 +73,7 @@ function tasksA(loadFilesA) {
 				loadFilesB = [loadFilesB];
 			}
 			return typeof loadFilesB === 'function' ? loadFilesB : function(callback) {
-				async.each(loadFilesB, tasksB, function(err) {
+				async.each(loadFilesB, makePromise, function(err) {
 					console.log(arguments);
 					callback(err ? true : null);
 				});

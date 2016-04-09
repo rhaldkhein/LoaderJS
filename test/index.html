@@ -15,11 +15,11 @@
             // Custom loader
            LoaderJS.addLoader({
                 ext: 'jpg,png,gif',
-                custom: function(callback) {
+                custom: function(resolve, reject) {
                     // Return with no error
-                    callback(null, loadedImage);
+                    resolve('Image Loaded!');
                     // Return with error
-                    callback('Error');
+                    // reject('Error');
                 }
             });
         
