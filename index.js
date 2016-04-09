@@ -1,0 +1,1 @@
+require('./loaderjs.bundle.js');

@@ -1,0 +1,22 @@
+{
+  "name": "loaderjs",
+  "version": "1.0.0",
+  "description": "A resoure loader for web application.",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "keywords": [
+    "javascript",
+    "resource",
+    "loader",
+    "web",
+    "application"
+  ],
+  "author": "Kevin",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^2.0.0-rc.2",
+    "es6-promise": "^3.1.2"
+  }
+}
