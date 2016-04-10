@@ -44,88 +44,109 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	// Imports
-	var Promise = (typeof window !== 'undefined' && window.Promise) ? window.Promise : __webpack_require__(1).Promise;
+	/* WEBPACK VAR INJECTION */(function(process) {// Imports
+	var isWindow = typeof window !== 'undefined';
+	var Promise = (isWindow && window.Promise) ? window.Promise : __webpack_require__(2).Promise; // With promise polyfill
+	var setImmediate = isWindow && window.setImmediate ? window.setImmediate : (function() {
+		if (typeof process === 'object' && typeof process.nextTick === 'function') {
+			return process.nextTick;
+		} else {
+			return function(fn) {
+				setTimeout(fn, 0);
+			};
+		}
+	})();
 
-	// Variables
+	// Loaders storage
 	var loaders = {};
 
-	function tasksB(item, callback) {
-		// If item is a function pass the callback instead
-		if (typeof item === 'function') {
-			async.setImmediate(function() {
-				item.call(this, callback);
-			});
-			return;
-		}
-		// Prepare variables
-		var regexExt = /(?:\.([^.]+))?$/,
-			ext = regexExt.exec(item)[1],
-			loader = loaders[ext] || (function() {
-				throw 'No loader for file ' + ext;
-			})();
-		// Check if it's a custom loader that might not deal with element
-		if (typeof loader === 'function') {
-			async.setImmediate(function() {
-				loader.call(this, function(err, data) {
-					// TODO last code
-					// Data should be pass to user
-					callback(err);
+	function makeLoadPromise(item) {
+		return new Promise(function(resolve, reject) {
+			if (item instanceof Promise) {
+				resolve();
+			} else if (typeof item === 'function') {
+				// If item is a function pass the resolve & reject
+				setImmediate(function() {
+					item.call(this, resolve, reject);
 				});
-			});
-			return;
-		}
-		// Prepare variable for element creation
-		var element = document.createElement(loader.tag || _loaderDefaults.tag),
-			parent = loader.parent || _loaderDefaults.parent,
-			attr = loader.attr || _loaderDefaults.attr;
-		// Handle events loaded or error
-		element.onload = function() {
-			callback();
-		};
-		element.onerror = function() {
-			callback(url);
-		};
-		// Export element for manipulation before attaching to parent
-		loader.config(element);
-		// Inject into document to kick off loading
-		element[attr] = item;
-		document[parent].appendChild(element);
-	};
-
-
-	function tasksA(loadFilesA) {
-		var i, tasks = [];
-		// Populate tasks array.
-		for (i = 0; i < loadFilesA.length; i++) {
-			tasks.push((function(loadFilesB) {
-				if (typeof loadFilesB === 'string' || loadFilesB instanceof String) {
-					loadFilesB = [loadFilesB];
-				}
-				return typeof loadFilesB === 'function' ? loadFilesB : function(callback) {
-					async.each(loadFilesB, tasksB, function(err) {
-						console.log(arguments);
-						callback(err ? true : null);
+			} else {
+				// Prepare variables
+				var regexExt = /(?:\.([^.]+))?$/,
+					ext = regexExt.exec(item)[1],
+					loader = loaders[ext] || (function() {
+						throw 'No loader for file ' + ext;
+					})();
+				if (typeof loader === 'function') {
+					setImmediate(function() {
+						loader.call(this, resolve, reject, item);
 					});
-				};
-			}).call(null, loadFilesA[i]));
-		}
-		// Return an array of functions that loads async.
-		return tasks;
-	};
+				} else {
+					// Prepare variable for element creation
+					var element = document.createElement(loader.tag || _loaderDefaults.tag),
+						parent = loader.parent || _loaderDefaults.parent,
+						attr = loader.attr || _loaderDefaults.attr;
+					// Handle events loaded or error
+					element.onload = function() {
+						resolve(item);
+					};
+					element.onerror = function() {
+						reject(item);
+					};
+					// Export element for manipulation before attaching to parent
+					loader.config(element);
+					// Inject into document to kick off loading
+					element[attr] = item;
+					document[parent].appendChild(element);
+				}
+			}
+		});
+	}
+
+
+	function makeLoadAsyncPromise(items) {
+		return new Promise(function(resolve, reject) {
+			if (typeof items === 'string' || items instanceof String) {
+				// String, converting to array of promises by calling makeLoadPromise function
+				items = [makeLoadPromise(items)];
+			} else if (typeof items === 'function') {
+				// Function, converting to array promises
+				items = [makeLoadPromise(items)];
+			} else {
+				// A valid array of strings or functions, converting to array of promises
+				for (i = 0; i < items.length; i++) {
+					items[i] = makeLoadPromise(items[i]);
+				}
+			}
+			// At this point we should have array of promises
+			Promise.all(items).then(resolve).catch(reject);
+		});
+	}
 
 
 	function load(resources, callback, progress) {
-		// Start loading...
-		async.series(tasksA(resources), function(err, results) {
-			if (!err) {
-				// All files have been loaded successfuly.
-				// console.log('Loader has loaded successfuly!');
-			} else {
-				// Display error message.
-				// console.log('Error!');
+		if (!resources.length > 0) {
+			return;
+		}
+		var i, prom, result = [];
+		for (i = 0; i < resources.length; i++) {
+			resources[i] = makeLoadAsyncPromise(resources[i]);
+		}
+		prom = resources[0];
+		resources.forEach(function(item) {
+			if (item !== prom) {
+				prom = prom.then(function(data) {
+					console.log('Then', data);
+					result.push(data);
+					return item;
+				});
 			}
-			callback(err);
+		});
+		prom.then(function(data) {
+			console.log('Then Last', data);
+			result.push(data);
+			callback(false, result);
+		}).catch(function(err) {
+			callback(true, err);
 		});
 	}
 
@@ -180,13 +201,112 @@
 	// Export for require
 	exports.load = load;
 	exports.addLoader = addLoader;
+	exports.loaders = loaders;
 	// Export for window
 	if (typeof window !== 'undefined' && !window.LoaderJS) {
 		window.LoaderJS = exports;
 	}
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
 /* 1 */
+/***/ function(module, exports) {
+
+	// shim for using process in browser
+
+	var process = module.exports = {};
+	var queue = [];
+	var draining = false;
+	var currentQueue;
+	var queueIndex = -1;
+
+	function cleanUpNextTick() {
+	    draining = false;
+	    if (currentQueue.length) {
+	        queue = currentQueue.concat(queue);
+	    } else {
+	        queueIndex = -1;
+	    }
+	    if (queue.length) {
+	        drainQueue();
+	    }
+	}
+
+	function drainQueue() {
+	    if (draining) {
+	        return;
+	    }
+	    var timeout = setTimeout(cleanUpNextTick);
+	    draining = true;
+
+	    var len = queue.length;
+	    while(len) {
+	        currentQueue = queue;
+	        queue = [];
+	        while (++queueIndex < len) {
+	            if (currentQueue) {
+	                currentQueue[queueIndex].run();
+	            }
+	        }
+	        queueIndex = -1;
+	        len = queue.length;
+	    }
+	    currentQueue = null;
+	    draining = false;
+	    clearTimeout(timeout);
+	}
+
+	process.nextTick = function (fun) {
+	    var args = new Array(arguments.length - 1);
+	    if (arguments.length > 1) {
+	        for (var i = 1; i < arguments.length; i++) {
+	            args[i - 1] = arguments[i];
+	        }
+	    }
+	    queue.push(new Item(fun, args));
+	    if (queue.length === 1 && !draining) {
+	        setTimeout(drainQueue, 0);
+	    }
+	};
+
+	// v8 likes predictible objects
+	function Item(fun, array) {
+	    this.fun = fun;
+	    this.array = array;
+	}
+	Item.prototype.run = function () {
+	    this.fun.apply(null, this.array);
+	};
+	process.title = 'browser';
+	process.browser = true;
+	process.env = {};
+	process.argv = [];
+	process.version = ''; // empty string to avoid regexp issues
+	process.versions = {};
+
+	function noop() {}
+
+	process.on = noop;
+	process.addListener = noop;
+	process.once = noop;
+	process.off = noop;
+	process.removeListener = noop;
+	process.removeAllListeners = noop;
+	process.emit = noop;
+
+	process.binding = function (name) {
+	    throw new Error('process.binding is not supported');
+	};
+
+	process.cwd = function () { return '/' };
+	process.chdir = function (dir) {
+	    throw new Error('process.chdir is not supported');
+	};
+	process.umask = function() { return 0; };
+
+
+/***/ },
+/* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var require;var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(process, global, module) {/*!
@@ -1144,104 +1264,7 @@
 	}).call(this);
 
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2), (function() { return this; }()), __webpack_require__(3)(module)))
-
-/***/ },
-/* 2 */
-/***/ function(module, exports) {
-
-	// shim for using process in browser
-
-	var process = module.exports = {};
-	var queue = [];
-	var draining = false;
-	var currentQueue;
-	var queueIndex = -1;
-
-	function cleanUpNextTick() {
-	    draining = false;
-	    if (currentQueue.length) {
-	        queue = currentQueue.concat(queue);
-	    } else {
-	        queueIndex = -1;
-	    }
-	    if (queue.length) {
-	        drainQueue();
-	    }
-	}
-
-	function drainQueue() {
-	    if (draining) {
-	        return;
-	    }
-	    var timeout = setTimeout(cleanUpNextTick);
-	    draining = true;
-
-	    var len = queue.length;
-	    while(len) {
-	        currentQueue = queue;
-	        queue = [];
-	        while (++queueIndex < len) {
-	            if (currentQueue) {
-	                currentQueue[queueIndex].run();
-	            }
-	        }
-	        queueIndex = -1;
-	        len = queue.length;
-	    }
-	    currentQueue = null;
-	    draining = false;
-	    clearTimeout(timeout);
-	}
-
-	process.nextTick = function (fun) {
-	    var args = new Array(arguments.length - 1);
-	    if (arguments.length > 1) {
-	        for (var i = 1; i < arguments.length; i++) {
-	            args[i - 1] = arguments[i];
-	        }
-	    }
-	    queue.push(new Item(fun, args));
-	    if (queue.length === 1 && !draining) {
-	        setTimeout(drainQueue, 0);
-	    }
-	};
-
-	// v8 likes predictible objects
-	function Item(fun, array) {
-	    this.fun = fun;
-	    this.array = array;
-	}
-	Item.prototype.run = function () {
-	    this.fun.apply(null, this.array);
-	};
-	process.title = 'browser';
-	process.browser = true;
-	process.env = {};
-	process.argv = [];
-	process.version = ''; // empty string to avoid regexp issues
-	process.versions = {};
-
-	function noop() {}
-
-	process.on = noop;
-	process.addListener = noop;
-	process.once = noop;
-	process.off = noop;
-	process.removeListener = noop;
-	process.removeAllListeners = noop;
-	process.emit = noop;
-
-	process.binding = function (name) {
-	    throw new Error('process.binding is not supported');
-	};
-
-	process.cwd = function () { return '/' };
-	process.chdir = function (dir) {
-	    throw new Error('process.chdir is not supported');
-	};
-	process.umask = function() { return 0; };
-
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1), (function() { return this; }()), __webpack_require__(3)(module)))
 
 /***/ },
 /* 3 */

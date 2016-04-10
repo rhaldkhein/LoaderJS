@@ -1,0 +1,17 @@
+#loader {
+	text-align: center;
+	padding: 10px;	
+}
+
+#loader.loading {
+	background-color: #ffff00;
+}
+
+#loader.done {
+	background-color: #66CD77;
+}
+
+#loader.error {
+	background-color: #f43b3b;
+}
+

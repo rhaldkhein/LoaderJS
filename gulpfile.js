@@ -4,7 +4,7 @@ var gulp = require('gulp'),
 	rename = require('gulp-rename'),
 	webpack = require('webpack-stream');
 
-gulp.task('default', ['test']);
+gulp.task('default', ['test_q']);
 
 gulp.task('bundle', function() {
 	return gulp.src('loaderjs.js')
@@ -23,4 +23,8 @@ gulp.task('compress', ['bundle'], function() {
 
 gulp.task('test', function() {
 	require('./test');
+});
+
+gulp.task('test_q', function() {
+	require('./test/q');
 });

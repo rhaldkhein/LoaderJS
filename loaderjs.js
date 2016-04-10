@@ -11,21 +11,15 @@ var setImmediate = isWindow && window.setImmediate ? window.setImmediate : (func
 	}
 })();
 
-// Variables
+// Loaders storage
 var loaders = {};
 
-function sync(collection, callback) {
-
-}
-
-function async(collection, callback) {
-
-}
-
-function makePromise(item) {
+function makeLoadPromise(item) {
 	return new Promise(function(resolve, reject) {
-		// If item is a function pass the resolve & reject
-		if (typeof item === 'function') {
+		if (item instanceof Promise) {
+			resolve();
+		} else if (typeof item === 'function') {
+			// If item is a function pass the resolve & reject
 			setImmediate(function() {
 				item.call(this, resolve, reject);
 			});
@@ -36,10 +30,9 @@ function makePromise(item) {
 				loader = loaders[ext] || (function() {
 					throw 'No loader for file ' + ext;
 				})();
-			// Check if it's a custom loader that might not deal with element
 			if (typeof loader === 'function') {
 				setImmediate(function() {
-					loader.call(this, resolve, reject);
+					loader.call(this, resolve, reject, item);
 				});
 			} else {
 				// Prepare variable for element creation
@@ -48,10 +41,10 @@ function makePromise(item) {
 					attr = loader.attr || _loaderDefaults.attr;
 				// Handle events loaded or error
 				element.onload = function() {
-					resolve();
+					resolve(item);
 				};
 				element.onerror = function() {
-					reject(url);
+					reject(item);
 				};
 				// Export element for manipulation before attaching to parent
 				loader.config(element);
@@ -61,41 +54,53 @@ function makePromise(item) {
 			}
 		}
 	});
-};
+}
 
 
-function tasksA(loadFilesA) {
-	var i, tasks = [];
-	// Populate tasks array.
-	for (i = 0; i < loadFilesA.length; i++) {
-		tasks.push((function(loadFilesB) {
-			if (typeof loadFilesB === 'string' || loadFilesB instanceof String) {
-				loadFilesB = [loadFilesB];
+function makeLoadAsyncPromise(items) {
+	return new Promise(function(resolve, reject) {
+		if (typeof items === 'string' || items instanceof String) {
+			// String, converting to array of promises by calling makeLoadPromise function
+			items = [makeLoadPromise(items)];
+		} else if (typeof items === 'function') {
+			// Function, converting to array promises
+			items = [makeLoadPromise(items)];
+		} else {
+			// A valid array of strings or functions, converting to array of promises
+			for (i = 0; i < items.length; i++) {
+				items[i] = makeLoadPromise(items[i]);
 			}
-			return typeof loadFilesB === 'function' ? loadFilesB : function(callback) {
-				async.each(loadFilesB, makePromise, function(err) {
-					console.log(arguments);
-					callback(err ? true : null);
-				});
-			};
-		}).call(null, loadFilesA[i]));
-	}
-	// Return an array of functions that loads async.
-	return tasks;
-};
+		}
+		// At this point we should have array of promises
+		Promise.all(items).then(resolve).catch(reject);
+	});
+}
 
 
 function load(resources, callback, progress) {
-	// Start loading...
-	async.series(tasksA(resources), function(err, results) {
-		if (!err) {
-			// All files have been loaded successfuly.
-			// console.log('Loader has loaded successfuly!');
-		} else {
-			// Display error message.
-			// console.log('Error!');
+	if (!resources.length > 0) {
+		return;
+	}
+	var i, prom, result = [];
+	for (i = 0; i < resources.length; i++) {
+		resources[i] = makeLoadAsyncPromise(resources[i]);
+	}
+	prom = resources[0];
+	resources.forEach(function(item) {
+		if (item !== prom) {
+			prom = prom.then(function(data) {
+				console.log('Then', data);
+				result.push(data);
+				return item;
+			});
 		}
-		callback(err);
+	});
+	prom.then(function(data) {
+		console.log('Then Last', data);
+		result.push(data);
+		callback(false, result);
+	}).catch(function(err) {
+		callback(true, err);
 	});
 }
 
@@ -150,6 +155,7 @@ addLoader({
 // Export for require
 exports.load = load;
 exports.addLoader = addLoader;
+exports.loaders = loaders;
 // Export for window
 if (typeof window !== 'undefined' && !window.LoaderJS) {
 	window.LoaderJS = exports;
