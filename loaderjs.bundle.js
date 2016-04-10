@@ -63,7 +63,7 @@
 	function makeLoadPromise(item) {
 		return new Promise(function(resolve, reject) {
 			if (item instanceof Promise) {
-				resolve();
+				reject();
 			} else if (typeof item === 'function') {
 				// If item is a function pass the resolve & reject
 				setImmediate(function() {
@@ -127,22 +127,17 @@
 		if (!resources.length > 0) {
 			return;
 		}
-		var i, prom, result = [];
-		for (i = 0; i < resources.length; i++) {
-			resources[i] = makeLoadAsyncPromise(resources[i]);
-		}
-		prom = resources[0];
+		var result = [],
+			prom = makeLoadAsyncPromise(resources[0]);
 		resources.forEach(function(item) {
-			if (item !== prom) {
+			if (item !== resources[0]) {
 				prom = prom.then(function(data) {
-					console.log('Then', data);
 					result.push(data);
-					return item;
+					return makeLoadAsyncPromise(item);
 				});
 			}
 		});
 		prom.then(function(data) {
-			console.log('Then Last', data);
 			result.push(data);
 			callback(false, result);
 		}).catch(function(err) {

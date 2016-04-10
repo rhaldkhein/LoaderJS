@@ -14,32 +14,36 @@
         <script type="text/javascript">
             // Add custom loader
            LoaderJS.addLoader({
-                ext: 'jpg,png,gif',
+                ext: 'jpg,png',
                 custom: function(resolve, reject, url) {
                     console.log('Loading Image', url);
                     resolve('Image Loaded');
                 }
             });
 
+           // Add file extension for existing loader
+           LoaderJS.addLoader({
+            ext: 'gif',
+            custom: LoaderJS.loaders['jpg']
+           });
+
            // Prepare resources
            // 2-Dimensional array
-           // 1st level is SEQUENCE promise
-           // 2nd level is PARALLEL promise
+           // 1st level is SEQUENCE loading. Waits for one to finish. (Sync)
+           // 2nd level is PARALLEL laoding. Does not wait. (Async)
 
            var resA = [];
            resA.push('dummy/dummy-scriptA.js'); // dummy-scriptA will always finish & execute first, than dummy-scriptB.
-           resA.push('https://code.jquery.com/jquery-1.12.3.js');
+           resA.push('dummy/dummy-img.gif'); 
 
-           var resB = 'dummy/dummy-scriptB.js';
+           var resB = [];
+           resB.push('dummy/dummy-scriptB.js'); // dummy-scriptB might finish last after dummy-css. Parallel loading
+           resB.push('dummy/dummy-css.css'); // dummy-css might finish first than dummy-scriptB. Parallel loading
 
-           var resC = [];
-           resC.push('https://code.jquery.com/jquery-2.2.3.js');
-           resC.push('dummy/dummy-css.css'); // dummy-css might finish first than dummy-scriptB.
-
-           var resD = 'http://dummy-images.com/abstract/dummy-480x270-FairyLights.jpg';
+           var resC = 'http://dummy-images.com/abstract/dummy-480x270-FairyLights.jpg';
 
             // Start loading resources
-            LoaderJS.load([resA, resB, resC, resD], function(err, data) {
+            LoaderJS.load([resA, resB, resC], function(err, data) {
                 console.log('Done', arguments);
                 var el = document.getElementById("loader");
                 if(!err){
