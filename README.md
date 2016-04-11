@@ -2,9 +2,33 @@
 
 A customizable resource loader for web application. Can supports any types of files, just add custom loader and load your files. LoaderJS uses Promise for asynchronous loading and control flow.
 
+Installation:
+```sh
+// For NPM
+npm install loaderjs
+// For Bower
+bower install loader-js
+```
+
 ----------
 
 ## Usage
+
+For Browser:
+
+```html
+<script src="loaderjs.bundle.min.js" type="text/javascript">
+<script type="text/javascript">
+	// LoaderJS will be automatically created globally
+	LoaderJS.load();
+</script>
+```
+
+For Node, Webpack, Browserify:
+
+```javascript
+var LoaderJS = require('loaderjs');
+```
 
 To start loading resource, just call `LoaderJS.load(resource, callback)`, where **resource** is a 2-dimensional array of files to load, and optional **callback** function with parameters `function(err, data){}`.
 
