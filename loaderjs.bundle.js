@@ -122,27 +122,50 @@
 		});
 	}
 
+	function getPercent(current, total) {
+		return Math.round((current / total) * 100);
+	}
+
 
 	function load(resources, callback, progress) {
 		if (!resources.length > 0) {
 			return;
 		}
-		var result = [],
-			prom = makeLoadAsyncPromise(resources[0]);
+		var result, counter, prom = makeLoadAsyncPromise(resources[0]);
+		if (callback) {
+			result = [];
+			if (progress) {
+				counter = 0;
+			}
+		}
 		resources.forEach(function(item) {
 			if (item !== resources[0]) {
 				prom = prom.then(function(data) {
-					result.push(data);
+					if (callback) {
+						result.push(data);
+						if (progress) {
+							progress(getPercent(++counter, resources.length));
+						}
+					}
 					return makeLoadAsyncPromise(item);
 				});
 			}
 		});
 		prom.then(function(data) {
-			result.push(data);
-			callback(false, result);
+			if (callback) {
+				result.push(data);
+				if (progress) {
+					progress(getPercent(++counter, resources.length));
+				}
+				callback(false, result);
+			}
 		}).catch(function(err) {
-			callback(true, err);
+			if (callback)
+				callback(true, err);
 		});
+		if (callback && progress) {
+				progress(getPercent(counter, resources.length));
+		}
 	}
 
 	function addLoader(loader) {

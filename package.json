@@ -1,6 +1,6 @@
 {
   "name": "loaderjs",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "A resoure loader for web application.",
   "main": "index.js",
   "scripts": {
@@ -14,9 +14,8 @@
     "application"
   ],
   "author": "Kevin",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
-    "es6-promise": "^3.1.2",
-    "q": "^1.4.1"
+    "es6-promise": "^3.1.2"
   }
 }
