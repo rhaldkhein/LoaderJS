@@ -1,7 +1,7 @@
 {
   "name": "loaderjs",
   "version": "0.1.0",
-  "description": "A resoure loader for web application.",
+  "description": "A customizable resource loader for web application. Powered by Promise.",
   "main": "index.js",
   "scripts": {
     "test": "test"
