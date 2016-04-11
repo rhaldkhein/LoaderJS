@@ -1,1 +1,1 @@
-module.exports = require('./loaderjs.bundle.js');
+module.exports = require('./loaderjs');
