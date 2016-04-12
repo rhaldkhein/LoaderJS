@@ -1,0 +1,29 @@
+{
+  "name": "loader-js",
+  "description": "A customizable resource loader for web application. Powered by Promise.",
+  "main": "index.js",
+  "authors": [
+    "Kevin"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "javascript",
+    "resource",
+    "loader",
+    "web",
+    "application"
+  ],
+  "homepage": "https://github.com/rhaldkhein/LoaderJS",
+  "moduleType": [
+    "amd",
+    "globals",
+    "node"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

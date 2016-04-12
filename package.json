@@ -2,6 +2,8 @@
   "name": "loaderjs",
   "version": "0.1.3",
   "description": "A customizable resource loader for web application. Powered by Promise.",
+  "homepage": "https://github.com/rhaldkhein/LoaderJS",
+  "repository": "rhaldkhein/LoaderJS",
   "main": "index.js",
   "scripts": {
     "test": "test"
@@ -13,7 +15,7 @@
     "web",
     "application"
   ],
-  "author": "Kevin",
+  "author": "Kevin <undyingmind@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "es6-promise": "^3.1.2"
