@@ -123,10 +123,10 @@ LoaderJS.addLoader({
      custom: function(resolve, reject, url) {
          console.log('Loading Image', url);
          var image = new Image();
-         element.onload = function() {
+         image.onload = function() {
 			resolve(image);
 		 };
-		 element.onerror = function() {
+		 image.onerror = function() {
 			reject('Unable to load image ' + url);
 		 };
          image.src = url;
