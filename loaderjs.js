@@ -146,7 +146,7 @@ addLoader({
 	parent: 'body',
 	attr: 'src',
 	config: function(el) {
-		el.async = true;
+		el.async = false;
 	}
 });
 

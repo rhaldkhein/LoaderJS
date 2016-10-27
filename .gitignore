@@ -1,13 +1,21 @@
 
 # === IGNORE ALL ===
+
 /*
 
 # === EXCEPT ===
 # Common Files
+
 !/.gitignore
+!/.npmignore
+!/.travis.yml
 !/*.json
 !/*.txt
 !/*.md
 !/*.js
-
+!/LICENSE
 !/test
+
+# === IGNORE AGAIN ===
+
+**/.DS_Store
