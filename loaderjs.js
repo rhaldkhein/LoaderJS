@@ -17,7 +17,7 @@ var loaders = {};
 function makeLoadPromise(item) {
 	return new Promise(function(resolve, reject) {
 		if (item instanceof Promise) {
-			reject();
+			reject('Item ' + item + ' should not be a promise');
 		} else if (typeof item === 'function') {
 			// If item is a function pass the resolve & reject
 			setImmediate(function() {
@@ -44,7 +44,7 @@ function makeLoadPromise(item) {
 					resolve(item);
 				};
 				element.onerror = function() {
-					reject(item);
+					reject('Error while loading ' + item);
 				};
 				// Export element for manipulation before attaching to parent
 				loader.config(element);
@@ -115,10 +115,10 @@ function load(resources, callback, progress) {
 		}
 	}).catch(function(err) {
 		if (callback)
-			callback(true, err);
+			callback(err);
 	});
 	if (callback && progress) {
-			progress(getPercent(counter, resources.length));
+		progress(getPercent(counter, resources.length));
 	}
 }
 
