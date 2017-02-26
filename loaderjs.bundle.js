@@ -63,7 +63,7 @@
 	function makeLoadPromise(item) {
 		return new Promise(function(resolve, reject) {
 			if (item instanceof Promise) {
-				reject();
+				reject('Item ' + item + ' should not be a promise');
 			} else if (typeof item === 'function') {
 				// If item is a function pass the resolve & reject
 				setImmediate(function() {
@@ -90,7 +90,7 @@
 						resolve(item);
 					};
 					element.onerror = function() {
-						reject(item);
+						reject('Error while loading ' + item);
 					};
 					// Export element for manipulation before attaching to parent
 					loader.config(element);
@@ -161,10 +161,10 @@
 			}
 		}).catch(function(err) {
 			if (callback)
-				callback(true, err);
+				callback(err);
 		});
 		if (callback && progress) {
-				progress(getPercent(counter, resources.length));
+			progress(getPercent(counter, resources.length));
 		}
 	}
 
@@ -224,6 +224,7 @@
 	if (typeof window !== 'undefined' && !window.LoaderJS) {
 		window.LoaderJS = exports;
 	}
+
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
