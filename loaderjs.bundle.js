@@ -113,7 +113,7 @@
 				items = [makeLoadPromise(items)];
 			} else {
 				// A valid array of strings or functions, converting to array of promises
-				for (i = 0; i < items.length; i++) {
+				for (var i = 0; i < items.length; i++) {
 					items[i] = makeLoadPromise(items[i]);
 				}
 			}
