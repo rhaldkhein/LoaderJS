@@ -11,14 +11,22 @@
     <div class="loading" id="loader">
         Loading ...
     </div>
+    <script src="./nanobar.min.js" type="text/javascript">
+    </script>
     <script src="../../loaderjs.bundle.js" type="text/javascript">
     </script>
     <script type="text/javascript">
+
+    var nanobar =  new Nanobar({
+        id: 'pb-id',
+        classname: 'pb-class'
+    });
+
     // Add custom loader
     LoaderJS.addLoader({
         ext: 'jpg,png',
         custom: function(resolve, reject, url) {
-            console.log('Loading Image', url);
+            // console.log('Loading Image', url);
             var newImg = new Image;
             newImg.onload = function() {
                 resolve('Image Loaded');
@@ -45,30 +53,37 @@
     resA.push('./dummy/dummy-css.css');
     resA.push('./dummy/dummy-scriptA.js'); // dummy-scriptA will always finish & execute first, than dummy-scriptB.
     resA.push('./dummy/dummy-img.gif');
+    resA.push('http://dummy-images.com/abstract/dummy-500x500-FairyLights.jpg');
 
     var resB = [];
     resB.push(function(resolve, reject) {
-        reject('Custom error');
+        resolve('Foo');
     });
     resB.push('./dummy/dummy-scriptB.js'); // dummy-scriptB might finish last after dummy-scriptC. Parallel loading
     resB.push('./dummy/dummy-scriptC.js'); // dummy-scriptC might finish first than dummy-scriptB. Parallel loading
 
     var resC = 'http://dummy-images.com/abstract/dummy-480x270-FairyLights.jpg';
+    var resD = function(resolve, reject) {
+        resolve('Bar');
+    };
 
     // Start loading resources
-    LoaderJS.load([resA, resB, resC], function(err, data) {
-        console.log('Done', arguments);
+    LoaderJS.load([resA, resB, resC, resD], function(err, data) {
+        // console.log('Done', arguments);
         var el = document.getElementById("loader");
         if (!err) {
-            el.className = "done";
-            el.innerHTML = "Done!";
+            el.className = 'done';
+            el.innerHTML = 'Done!';
         } else {
-            el.className = "error";
-            el.innerHTML = "Error!";
+            el.className = 'error';
+            el.innerHTML = 'Error!';
         }
     }, function(perc) {
-        console.log('Progress', perc);
+        // console.log('Progress', perc);
+        nanobar.go(perc);
     });
+
+
     </script>
 </body>
 
