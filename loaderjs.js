@@ -1,6 +1,6 @@
 // Imports
 var isWindow = typeof window !== 'undefined';
-var Promise = (isWindow && window.Promise) ? window.Promise : require('es6-promise').Promise; // With promise polyfill
+var Promise = (isWindow && window.Promise) ? window.Promise : require('promise-polyfill').Promise; // With promise polyfill
 var setImmediate = isWindow && window.setImmediate ? window.setImmediate : (function() {
 	if (typeof process === 'object' && typeof process.nextTick === 'function') {
 		return process.nextTick;
