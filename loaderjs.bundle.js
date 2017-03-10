@@ -60,7 +60,7 @@
 	// Loaders storage
 	var loaders = {};
 
-	function makeLoadPromise(item) {
+	function makeLoadPromise(item, increment) {
 		return new Promise(function(resolve, reject) {
 			if (item instanceof Promise) {
 				reject('Item ' + item + ' should not be a promise');
@@ -99,27 +99,25 @@
 					document[parent].appendChild(element);
 				}
 			}
-		});
+		}).then(increment);
 	}
 
 
-	function makeLoadAsyncPromise(items) {
-		return new Promise(function(resolve, reject) {
-			if (typeof items === 'string' || items instanceof String) {
-				// String, converting to array of promises by calling makeLoadPromise function
-				items = [makeLoadPromise(items)];
-			} else if (typeof items === 'function') {
-				// Function, converting to array promises
-				items = [makeLoadPromise(items)];
-			} else {
-				// A valid array of strings or functions, converting to array of promises
-				for (var i = 0; i < items.length; i++) {
-					items[i] = makeLoadPromise(items[i]);
-				}
+	function makeLoadAsyncPromise(items, increment) {
+		if (typeof items === 'string' || items instanceof String) {
+			// String, converting to array of promises by calling makeLoadPromise function
+			items = [makeLoadPromise(items, increment)];
+		} else if (typeof items === 'function') {
+			// Function, converting to array promises
+			items = [makeLoadPromise(items, increment)];
+		} else {
+			// A valid array of strings or functions, converting to array of promises
+			for (var i = 0; i < items.length; i++) {
+				items[i] = makeLoadPromise(items[i], increment);
 			}
-			// At this point we should have array of promises
-			Promise.all(items).then(resolve).catch(reject);
-		});
+		}
+		// At this point we should have array of promises
+		return Promise.all(items);
 	}
 
 	function getPercent(current, total) {
@@ -128,44 +126,36 @@
 
 
 	function load(resources, callback, progress) {
-		if (!resources.length > 0) {
-			return;
+		if (!resources.length > 0) return;
+
+		function increment(result) {
+			if (progress && !error) progress(getPercent(counter++, total));
+			return result;
 		}
-		var result, counter, prom = makeLoadAsyncPromise(resources[0]);
-		if (callback) {
-			result = [];
-			if (progress) {
-				counter = 0;
-			}
-		}
+		var error = false,
+			counter = 0,
+			total = resources[0] instanceof Array ? resources[0].length : 1,
+			result = callback ? [] : undefined,
+			prom = makeLoadAsyncPromise(resources[0], increment);
 		resources.forEach(function(item) {
 			if (item !== resources[0]) {
+				total += item instanceof Array ? item.length : 1;
 				prom = prom.then(function(data) {
-					if (callback) {
-						result.push(data);
-						if (progress) {
-							progress(getPercent(++counter, resources.length));
-						}
-					}
-					return makeLoadAsyncPromise(item);
+					if (callback) result.push(data);
+					return makeLoadAsyncPromise(item, increment);
 				});
 			}
 		});
 		prom.then(function(data) {
 			if (callback) {
 				result.push(data);
-				if (progress) {
-					progress(getPercent(++counter, resources.length));
-				}
 				callback(false, result);
 			}
 		}).catch(function(err) {
-			if (callback)
-				callback(err);
+			error = true;
+			if (callback) callback(err);
 		});
-		if (callback && progress) {
-			progress(getPercent(counter, resources.length));
-		}
+		increment();
 	}
 
 	function addLoader(loader) {
