@@ -1,7 +1,7 @@
 {
   "name": "loaderjs",
-  "version": "0.1.7",
-  "description": "A customizable resource loader for web application. Powered by Promise.",
+  "version": "0.1.8",
+  "description": "A flexible promise-based resource loader for web application.",
   "homepage": "https://github.com/rhaldkhein/LoaderJS",
   "repository": "rhaldkhein/LoaderJS",
   "main": "index.js",
