@@ -68,19 +68,27 @@
     };
 
     // Start loading resources
-    LoaderJS.load([resA, resB, resC, resD], function(err, data) {
-        // console.log('Done', arguments);
-        var el = document.getElementById("loader");
-        if (!err) {
-            el.className = 'done';
-            el.innerHTML = 'Done!';
-        } else {
-            el.className = 'error';
-            el.innerHTML = 'Error!';
-        }
-    }, function(perc) {
-        // console.log('Progress', perc);
-        nanobar.go(perc);
+    // LoaderJS.load([resA, resB, resC, resD], function(err, data) {
+    //     // console.log('Done', arguments);
+    //     var el = document.getElementById("loader");
+    //     if (!err) {
+    //         el.className = 'done';
+    //         el.innerHTML = 'Done!';
+    //     } else {
+    //         el.className = 'error';
+    //         el.innerHTML = 'Error!';
+    //     }
+    // }, function(perc) {
+    //     // console.log('Progress', perc);
+    //     nanobar.go(perc);
+    // });
+
+    LoaderJS.loadOne('./dummy/dummy-css.css')
+    .then(function() {
+        return LoaderJS.loadMany(['http://dummy-images.com/abstract/dummy-500x500-FairyLights.jpg', './dummy/dummy-img.gif']);
+    })
+    .then(function() {
+        console.log('Success! X');
     });
 
 
