@@ -17,9 +17,7 @@
   ],
   "author": "Kevin <undyingmind@gmail.com>",
   "license": "MIT",
-  "dependencies": {
-    "promise-polyfill": "^6.0.2"
-  },
+  "dependencies": {},
   "files": [
     "index.js",
     "loaderjs.js",
