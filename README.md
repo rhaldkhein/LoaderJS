@@ -30,7 +30,9 @@ For Node, Webpack, Browserify:
 var LoaderJS = require('loaderjs');
 ```
 
-To start loading resource, just call `LoaderJS.load(resource, callback)`, where **resource** is a 2-dimensional array of files to load, and optional **callback** function with parameters `function(err, data){}`.
+### LoaderJS.load(resource, callback) 
+
+To start loading resource, just call `LoaderJS.load(resource, callback)`, where **resource** is a 2-dimensional array of `url` files or Promise `resolver` to load, and optional **callback** function with parameters `function(err, data){}`. Returns `Promise`.
 
 The **resource** collection must be a 2-Dimensional array.
  - 1st level is `SEQUENCE` loading. Waits for the preceding element to finish.
@@ -74,6 +76,10 @@ LoaderJS.load([resA, resB, resC], function(err, data) {
     }
 });
 ```
+### LoaderJS.loadOne(resource) 
+Loads a single resource. Can be a `string` or a Promise `resolver`. Returns `Promise`.
+### LoaderJS.loadMany(resources)
+Loads multiple resources in parallel (array of `string` or Promise `resolver`). Returns `Promise`.
 
 ----------
 
