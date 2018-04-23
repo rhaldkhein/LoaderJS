@@ -69,17 +69,6 @@
 
 /* WEBPACK VAR INJECTION */(function(process) {// Imports
 var isWindow = typeof window !== 'undefined';
-<<<<<<< HEAD
-var setImmediate = isWindow && window.setImmediate ? window.setImmediate : (function() {
-  if (typeof process === 'object' && typeof process.nextTick === 'function') {
-    return process.nextTick;
-  } else {
-    return function(fn) {
-      setTimeout(fn, 0);
-    };
-  }
-})();
-=======
 var setImmediate =
   isWindow && window.setImmediate
     ? window.setImmediate
@@ -92,17 +81,12 @@ var setImmediate =
           };
         }
       })();
->>>>>>> devel
 
 // Loaders storage
 var loaders = {};
 
 function makeLoadPromise(item, increment) {
   var promise = new Promise(function(resolve, reject) {
-<<<<<<< HEAD
-    if (item instanceof Promise) {
-      reject('Item ' + item + ' should not be a promise');
-=======
     if (!item) {
       // Auto resolve if passed a falsy item
       resolve();
@@ -118,33 +102,20 @@ function makeLoadPromise(item, increment) {
         // Assume that its really a promise
         item.then(resolve).catch(reject);
       }
->>>>>>> devel
     } else if (typeof item === 'function') {
       // If item is a function pass the resolve & reject
       setImmediate(function() {
         item.call(this, resolve, reject);
       });
-<<<<<<< HEAD
-    } else if (item === null) {
-      // Auto resolve if passed a null item
-      resolve();
-=======
->>>>>>> devel
     } else {
       // Prepare variables
       var regexExt = /(?:\.([^.]+))?$/,
         ext = regexExt.exec(item)[1],
-<<<<<<< HEAD
-        loader = loaders[ext] || (function() {
-          throw 'No loader for file ' + ext;
-        })();
-=======
         loader =
           loaders[ext] ||
           (function() {
             throw 'No loader for file ' + ext;
           })();
->>>>>>> devel
       if (typeof loader === 'function') {
         setImmediate(function() {
           loader.call(this, resolve, reject, item);
@@ -191,11 +162,7 @@ function makeLoadAsyncPromise(items, increment) {
 }
 
 function getPercent(current, total) {
-<<<<<<< HEAD
-  return Math.round((current / total) * 100);
-=======
   return Math.round(current / total * 100);
->>>>>>> devel
 }
 
 function load(resources, callback, progress) {
@@ -219,17 +186,6 @@ function load(resources, callback, progress) {
       });
     }
   });
-<<<<<<< HEAD
-  prom.then(function(data) {
-    if (callback) {
-      result.push(data);
-      callback(false, result);
-    }
-  }).catch(function(err) {
-    error = true;
-    if (callback) callback(err);
-  });
-=======
   prom
     .then(function(data) {
       if (callback) {
@@ -241,18 +197,13 @@ function load(resources, callback, progress) {
       error = true;
       if (callback) callback(err);
     });
->>>>>>> devel
   increment();
   return prom;
 }
 
 function addLoader(loader) {
-<<<<<<< HEAD
-  var i, exts = loader.ext.split(',');
-=======
   var i,
     exts = loader.ext.split(',');
->>>>>>> devel
   for (i = exts.length - 1; i > -1; i--) {
     loaders[exts[i]] = 'custom' in loader ? loader.custom : loader;
   }
