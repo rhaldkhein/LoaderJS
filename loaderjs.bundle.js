@@ -69,6 +69,7 @@
 
 /* WEBPACK VAR INJECTION */(function(process) {// Imports
 var isWindow = typeof window !== 'undefined';
+<<<<<<< HEAD
 var setImmediate = isWindow && window.setImmediate ? window.setImmediate : (function() {
   if (typeof process === 'object' && typeof process.nextTick === 'function') {
     return process.nextTick;
@@ -78,29 +79,72 @@ var setImmediate = isWindow && window.setImmediate ? window.setImmediate : (func
     };
   }
 })();
+=======
+var setImmediate =
+  isWindow && window.setImmediate
+    ? window.setImmediate
+    : (function() {
+        if (typeof process === 'object' && typeof process.nextTick === 'function') {
+          return process.nextTick;
+        } else {
+          return function(fn) {
+            setTimeout(fn, 0);
+          };
+        }
+      })();
+>>>>>>> devel
 
 // Loaders storage
 var loaders = {};
 
 function makeLoadPromise(item, increment) {
   var promise = new Promise(function(resolve, reject) {
+<<<<<<< HEAD
     if (item instanceof Promise) {
       reject('Item ' + item + ' should not be a promise');
+=======
+    if (!item) {
+      // Auto resolve if passed a falsy item
+      resolve();
+    } else if (typeof item.then === 'function') {
+      // Promise like object
+      if (typeof item.src === 'string') {
+        // Object item with props `src` and `then`
+        makeLoadPromise(item.src)
+          .then(item.then)
+          .then(resolve)
+          .catch(reject);
+      } else {
+        // Assume that its really a promise
+        item.then(resolve).catch(reject);
+      }
+>>>>>>> devel
     } else if (typeof item === 'function') {
       // If item is a function pass the resolve & reject
       setImmediate(function() {
         item.call(this, resolve, reject);
       });
+<<<<<<< HEAD
     } else if (item === null) {
       // Auto resolve if passed a null item
       resolve();
+=======
+>>>>>>> devel
     } else {
       // Prepare variables
       var regexExt = /(?:\.([^.]+))?$/,
         ext = regexExt.exec(item)[1],
+<<<<<<< HEAD
         loader = loaders[ext] || (function() {
           throw 'No loader for file ' + ext;
         })();
+=======
+        loader =
+          loaders[ext] ||
+          (function() {
+            throw 'No loader for file ' + ext;
+          })();
+>>>>>>> devel
       if (typeof loader === 'function') {
         setImmediate(function() {
           loader.call(this, resolve, reject, item);
@@ -129,7 +173,6 @@ function makeLoadPromise(item, increment) {
   return promise;
 }
 
-
 function makeLoadAsyncPromise(items, increment) {
   if (typeof items === 'string' || items instanceof String) {
     // String, converting to array of promises by calling makeLoadPromise function
@@ -148,9 +191,12 @@ function makeLoadAsyncPromise(items, increment) {
 }
 
 function getPercent(current, total) {
+<<<<<<< HEAD
   return Math.round((current / total) * 100);
+=======
+  return Math.round(current / total * 100);
+>>>>>>> devel
 }
-
 
 function load(resources, callback, progress) {
   if (!resources.length > 0) return;
@@ -173,6 +219,7 @@ function load(resources, callback, progress) {
       });
     }
   });
+<<<<<<< HEAD
   prom.then(function(data) {
     if (callback) {
       result.push(data);
@@ -182,12 +229,30 @@ function load(resources, callback, progress) {
     error = true;
     if (callback) callback(err);
   });
+=======
+  prom
+    .then(function(data) {
+      if (callback) {
+        result.push(data);
+        callback(false, result);
+      }
+    })
+    .catch(function(err) {
+      error = true;
+      if (callback) callback(err);
+    });
+>>>>>>> devel
   increment();
   return prom;
 }
 
 function addLoader(loader) {
+<<<<<<< HEAD
   var i, exts = loader.ext.split(',');
+=======
+  var i,
+    exts = loader.ext.split(',');
+>>>>>>> devel
   for (i = exts.length - 1; i > -1; i--) {
     loaders[exts[i]] = 'custom' in loader ? loader.custom : loader;
   }
@@ -239,11 +304,12 @@ exports.load = load;
 exports.addLoader = addLoader;
 exports.loaders = loaders;
 exports.loadOne = makeLoadPromise;
-exports.loadMany = makeLoadAsyncPromise;
+exports.loadMany = exports.loadAsync = makeLoadAsyncPromise;
 // Export for window
 if (typeof window !== 'undefined' && !window.LoaderJS) {
   window.LoaderJS = exports;
 }
+
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
