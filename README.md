@@ -1,42 +1,50 @@
 # LoaderJS
 
-A customizable resource loader for web application. Can supports any types of files, just add custom loader and load your files. LoaderJS uses Promise for asynchronous loading and control flow.
+A customizable resource loader for web applications. Promise-based asynchronous loading and control flow. Can support any types of files, just create custom loader for your custom files.
 
 Installation:
 ```sh
-// For NPM
+// NPM 
 npm install loaderjs
-// For Bower
-bower install loader-js
 ```
 
 ----------
 
 ## Usage
 
-For Browser:
+For global window:
 
 ```html
 <script src="loaderjs.bundle.min.js" type="text/javascript">
 <script type="text/javascript">
-	// LoaderJS will be automatically created globally
-	LoaderJS.load();
+	// `LoaderJS` will be exposed to global `window`
+	LoaderJS.load([...]);
 </script>
 ```
 
-For Node, Webpack, Browserify:
+For Webpack or Browserify:
 
 ```javascript
+// Import
 var LoaderJS = require('loaderjs');
+// Start loading
+LoaderJS.load([...]);
 ```
 
-### LoaderJS.load(resource, callback) 
+### LoaderJS.load(resources [, callback]) -> Promise
 
-To start loading resource, just call `LoaderJS.load(resource, callback)`, where **resource** is a 2-dimensional array of `url` files or Promise `resolver` to load, and optional **callback** function with parameters `function(err, data){}`. Returns `Promise`.
+To start loading resources, just call `LoaderJS.load(resource, callback)`, where **resource** is a 2-dimensional array of possible **items**, and optional **callback** function with parameters `function(err, data){}`. Returns `Promise`.
 
 The **resource** collection must be a 2-Dimensional array.
  - 1st level is `SEQUENCE` loading. Waits for the preceding element to finish.
  - 2nd level is `PARALLEL` loading. Does not wait, loads immediately.
+
+The **items** can be.
+ - String `url` (like value of src attribute)
+ - Promise
+ - Promise's `resolver` function - `function(resolve, reject) {...}`
+ - Object with `src` and `then` property - `{ src: 'file.js', then: function() {...} }`
+ - Any falsy value, which will auto resolve - `null or undefined or etc.`
 
 The **callback** function is triggered when loading is completely done or loader encounters error while loading.
  - Check the `err` to see the status result
@@ -53,6 +61,19 @@ var resA = [];
 resA.push('dummy/dummy-scriptA.js');
 //dummy-img will load along with dummy-scriptA.
 resA.push('dummy/dummy-img.gif');
+// A promise
+resA.push(new Promise())
+// A promise resolver
+resA.push(function(resolve, reject) {})
+// Object
+resA.push({
+  src: 'dummy/big-file.js',
+  then: function() {
+    // Called when done loading big-file.js
+    // You can also return a promise and loader wait for it to fulfil
+    return client.init() // Assume init() returns a promise
+  }
+})
 
 var resB = [];
 // dummy-scriptB might finish last after dummy-css. Parallel loading
@@ -67,19 +88,15 @@ LoaderJS.load([resA, resB, resC], function(err, data) {
     var el = document.getElementById("loader");
     if(!err){
 	    console.log('All Loaded!', data);
-        el.className = "done";
-        el.innerHTML = "Done!";
     } else {
 	    console.log('Ouch!', data);
-        el.className = "error";
-        el.innerHTML = "Error!";
     }
 });
 ```
 ### LoaderJS.loadOne(resource) 
-Loads a single resource. Can be a `string` or a Promise `resolver`. Returns `Promise`.
+Loads a single resource. Returns `Promise`.
 ### LoaderJS.loadMany(resources)
-Loads multiple resources in parallel (array of `string` or Promise `resolver`). Returns `Promise`.
+Loads multiple resources in parallel (1-dim array only). Returns `Promise`.
 
 ----------
 
@@ -153,23 +170,10 @@ LoaderJS.addLoader({
 
 ## More...
 
-### Promise
-
-In **resource** collection mention above, you can actually provide a function `function(resolve, reject){}` which will be processed with same control flow *SEQUENCE & PARALLEL*.
-
-That function will be converted into a [Promise](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise), which you can resolve or reject.
-
-```javascript
-var promise = function(resolve, reject){
-	if (isLoaded) {
-		resolve();
-	} else {
-		reject('Sorry');
-	}
-};
-LoaderJS.load([promise, 'bundle.js']);
-```
 
 ### Progress Callback
 
 You can also add 3rd argument to `LoadJS.load(res, cb, progress)` which enables to keep track of the progress. The callback will pass the **percentage** of the loading progress.
+
+### License
+MIT

@@ -49,47 +49,65 @@
     // 1st level is SEQUENCE loading. Waits for one to finish. (Sync)
     // 2nd level is PARALLEL laoding. Does not wait. (Async)
 
-    var resA = [];
+    var resA = [
+        null,
+        undefined,
+        {
+            src: 'http://nagyadam2092.github.io/work/angularjs_presentation/js_basics/img/js_logo.png',
+            then: function() {
+                console.log('Done: A');
+                // Can return a promise and loader waits for promise to fulfil
+            }
+        },
+        new Promise(function(resolve) {
+            setTimeout(function() {
+                console.log('Done: B');
+                resolve();
+            }, 3000);
+        }).then(function() {
+                console.log('Done: C');
+            })
+    ];
     resA.push('./dummy/dummy-css.css');
     resA.push('./dummy/dummy-scriptA.js'); // dummy-scriptA will always finish & execute first, than dummy-scriptB.
     resA.push('./dummy/dummy-img.gif');
     resA.push('http://dummy-images.com/abstract/dummy-500x500-FairyLights.jpg');
 
     var resB = [];
-    resB.push(function(resolve, reject) {
+    resB.push(function(resolve) {
         resolve('Foo');
     });
     resB.push('./dummy/dummy-scriptB.js'); // dummy-scriptB might finish last after dummy-scriptC. Parallel loading
     resB.push('./dummy/dummy-scriptC.js'); // dummy-scriptC might finish first than dummy-scriptB. Parallel loading
 
     var resC = 'http://dummy-images.com/abstract/dummy-480x270-FairyLights.jpg';
-    var resD = function(resolve, reject) {
+    var resD = function(resolve) {
         resolve('Bar');
     };
 
     // Start loading resources
-    // LoaderJS.load([resA, resB, resC, resD], function(err, data) {
-    //     // console.log('Done', arguments);
-    //     var el = document.getElementById("loader");
-    //     if (!err) {
-    //         el.className = 'done';
-    //         el.innerHTML = 'Done!';
-    //     } else {
-    //         el.className = 'error';
-    //         el.innerHTML = 'Error!';
-    //     }
-    // }, function(perc) {
-    //     // console.log('Progress', perc);
-    //     nanobar.go(perc);
-    // });
-
-    LoaderJS.loadOne('./dummy/dummy-css.css')
-    .then(function() {
-        return LoaderJS.loadMany(['http://dummy-images.com/abstract/dummy-500x500-FairyLights.jpg', './dummy/dummy-img.gif']);
-    })
-    .then(function() {
-        console.log('Success! X');
+    LoaderJS.load([resA, resB, resC, resD], function(err, data) {
+        // console.log('Done', arguments);
+        var el = document.getElementById("loader");
+        if (!err) {
+            el.className = 'done';
+            el.innerHTML = 'Done!';
+        } else {
+            el.className = 'error';
+            el.innerHTML = 'Error!';
+        }
+    }, function(perc) {
+        // console.log('Progress', perc);
+        nanobar.go(perc);
     });
+
+    // LoaderJS.loadOne('./dummy/dummy-css.css')
+    // .then(function() {
+    //     return LoaderJS.loadMany(['http://dummy-images.com/abstract/dummy-500x500-FairyLights.jpg', './dummy/dummy-img.gif']);
+    // })
+    // .then(function() {
+    //     console.log('Success! X');
+    // });
 
 
     </script>
